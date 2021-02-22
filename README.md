@@ -24,7 +24,6 @@ This module is supported in the following bigip and terraform version
 |---------------|----------------|
 | BIG-IP 15.x  | X |
 | BIG-IP 14.x  | X |
-| BIG-IP 13.x  | X |
 
 ## Password Management
 
@@ -190,6 +189,13 @@ These variables have default values and don't have to be set to use this module.
 | bigip\_password | BIG-IP Password  |
 | public_addresses | List of BIG-IP public addresses |
 | private_addresses | List of BIG-IP private addresses |
+
+
+## Note
+
+```
+Currently we are not taking service account as an input, as we saw some issues when integrating with runtime-init. So we are creating service account for users and updating IAM profile to it, so that we can use gcp secret manager in run-time init.
+```
 
 
 ## Support Information
