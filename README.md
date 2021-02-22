@@ -4,6 +4,8 @@ This Terraform module deploys N-nic F5 BIG-IP in Gcp cloud,and with module count
 
 ## Prerequisites
 
+Getting Started with the Google Provider ( https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/getting_started )
+
 This module is supported from Terraform 0.13 version onwards.
 
 Below templates are tested and worked in the following version 
