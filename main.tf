@@ -112,8 +112,19 @@ data "template_file" "startup_script" {
     bigip_username                    = var.f5_username
     gcp_secret_manager_authentication = var.gcp_secret_manager_authentication
     bigip_password                    = (var.f5_password == "") ? (var.gcp_secret_manager_authentication ? var.gcp_secret_name : random_string.password.result) : var.f5_password
+    INIT_URL               = var.INIT_URL,
+    DO_URL                 = var.DO_URL,
+    DO_VER                 = split("/", var.DO_URL)[7]
+    AS3_URL                = var.AS3_URL,
+    AS3_VER                = split("/", var.AS3_URL)[7]
+    TS_VER                 = split("/", var.TS_URL)[7]
+    TS_URL                 = var.TS_URL,
+    CFE_VER                = split("/", var.CFE_URL)[7]
+    CFE_URL                = var.CFE_URL,
+    FAST_URL               = var.FAST_URL
   }
 }
+
 data "google_secret_manager_secret_version" "secret" {
   count   = var.gcp_secret_manager_authentication ? 1 : 0
   secret  = var.gcp_secret_name

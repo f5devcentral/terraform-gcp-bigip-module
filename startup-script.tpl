@@ -57,9 +57,17 @@ pre_onboard_enabled:
 extension_packages: 
   install_operations:
     - extensionType: do
-      extensionVersion: 1.16.0
+      extensionVersion: ${DO_VER}
+      extensionUrl: ${DO_URL}
     - extensionType: as3
-      extensionVersion: 3.23.0
+      extensionVersion: ${AS3_VER}
+      extensionUrl: ${AS3_URL}
+    - extensionType: ts
+      extensionVersion: ${TS_VER}
+      extensionUrl: ${TS_URL}
+    - extensionType: cf
+      extensionVersion: ${CFE_VER}
+      extensionUrl: ${CFE_URL}
 extension_services: 
   service_operations:
     - extensionType: do
@@ -67,12 +75,12 @@ extension_services:
       value: file:///config/cloud/do_w_admin.json
 EOF
 
-PACKAGE_URL='https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/v1.1.0/dist/f5-bigip-runtime-init-1.1.0-1.gz.run'
+#PACKAGE_URL='https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/v1.1.0/dist/f5-bigip-runtime-init-1.1.0-1.gz.run'
 for i in {1..30}; do
-curl -fv --retry 1 --connect-timeout 5 -L $PACKAGE_URL -o "/var/config/rest/downloads/f5-bigip-runtime-init-1.1.0-1.gz.run" && break || sleep 10
+curl -fv --retry 1 --connect-timeout 5 -L ${INIT_URL} -o "/var/config/rest/downloads/f5-bigip-runtime-init.gz.run" && break || sleep 10
 done
 
 # Install
-bash /var/config/rest/downloads/f5-bigip-runtime-init-1.1.0-1.gz.run -- '--cloud gcp'
+bash /var/config/rest/downloads/f5-bigip-runtime-init.gz.run -- '--cloud gcp'
 
 /usr/local/bin/f5-bigip-runtime-init --config-file /config/cloud/runtime-init-conf.yaml

@@ -37,7 +37,7 @@ This module is supported in the following bigip and terraform version
 
 ## Example Usage
 
-We have provided some common deployment [examples]() 
+We have provided some common deployment [examples](https://github.com/f5devcentral/terraform-gcp-bigip-module/tree/main/examples) 
 
 #### Note
 
@@ -157,14 +157,13 @@ These variables have default values and don't have to be set to use this module.
 |------|-------------|------|---------|
 | f5\_username | The admin username of the F5   BIG-IP that will be deployed | `string` | bigipuser |
 | f5\_password | Password of the F5  BIG-IP that will be deployed.If this is not specified random password will get generated | `string` | "" |
-| image | The self-link URI for a BIG-IP image to use as a base for the VM cluster  | `string` |
+| image | The self-link URI for a BIG-IP image to use as a base for the VM cluster  | `string` | "projects/f5-7626-networks-public/global/images/f5-bigip-15-1-2-0-0-9-payg-good-5gbps-201110225418" |
 | min_cpu_platform | Minimum CPU platform for the VM instance such as Intel Haswell or Intel Skylake | string` | Intel Skylake |
 | machine_type | The machine type to create,if you want to update this value (resize the VM) after initial creation, you must set allow_stopping_for_update to true | string` | n1-standard-4 |
 | automatic_restart | Specifies if the instance should be restarted if it was terminated by Compute Engine (not a user) | `bool` | true |
 | preemptible | Specifies if the instance is preemptible. If this field is set to true, then automatic_restart must be set to false | `boo1` | false |
 | disk_type | The GCE disk type. May be set to pd-standard, pd-balanced or pd-ssd | `string` | pd-ssd |
 | disk_size_gb | The size of the image in gigabytes. If not specified, it will inherit the size of its base image | `number` | null |
-| image | The self-link URI for a BIG-IP image to use as a base for the VM cluster  | `string` |
 | gcp_secret_manager_authentication | Whether to use secret manager to pass authentication | `bool` | false |
 | gcp_secret_name | The secret to get the secret version for | `string` | null |
 | gcp_secret_version | The version of the secret to get. If it is not provided, the latest version is retrieved | `string` | latest|
@@ -173,6 +172,12 @@ These variables have default values and don't have to be set to use this module.
 | mgmt\_subnet\_ids | List of maps of subnetids of the virtual network where the virtual machines will reside | `List of Maps` | [{ "subnet_id" = null, "public_ip" = null,"private_ip_primary" = "" }] |
 | external\_subnet\_ids | List of maps of subnetids of the virtual network where the virtual machines will reside | `List of Maps` | [{ "subnet_id" = null, "public_ip" = null,"private_ip_primary" = "", "private_ip_secondary" = "" }] |
 | internal\_subnet\_ids | List of maps of subnetids of the virtual network where the virtual machines will reside | `List of Maps` | [{ "subnet_id" = null, "public_ip" = null,"private_ip_primary" = "" }] |
+| DO_URL | URL to download the BIG-IP Declarative Onboarding module | `string` | latest | 
+| AS3_URL | URL to download the BIG-IP Application Service Extension 3 (AS3) module | `string` | latest | 
+| TS_URL | URL to download the BIG-IP Telemetry Streaming module | `string` | latest | 
+| FAST_URL | URL to download the BIG-IP FAST module | `string` | latest | 
+| CFE_URL | URL to download the BIG-IP Cloud Failover Extension module | `string` | latest |
+| INIT_URL | URL to download the BIG-IP runtime init module | `string` | latest |
 
 #### Output Variables
 | Name | Description |
@@ -180,7 +185,7 @@ These variables have default values and don't have to be set to use this module.
 | mgmtPublicIP | The actual ip address allocated for the resource |
 | mgmtPort | Mgmt Port |
 | f5\_username | BIG-IP username |
-| bigip\_password | BIG-IP Password (if dynamic_password is choosen it will be random generated password or if gcp_keyvault is choosen it will be key vault secret name ) |
+| bigip\_password | BIG-IP Password  |
 | public_addresses | List of BIG-IP public addresses |
 | private_addresses | List of BIG-IP private addresses |
 
@@ -191,5 +196,18 @@ This repository is community-supported. Follow instructions below on how to rais
 
 ### Filing Issues and Getting Help
 
-If you come across a bug or other issue, use [GitHub Issues]() to submit an issue for our team.  You can also see the current known issues on that page, which are tagged with a purple Known Issue label.
+If you come across a bug or other issue, use [GitHub Issues](https://github.com/f5devcentral/terraform-gcp-bigip-module/issues) to submit an issue for our team.  You can also see the current known issues on that page, which are tagged with a purple Known Issue label.
 
+## Copyright
+
+Copyright 2014-2019 F5 Networks Inc.
+
+### F5 Networks Contributor License Agreement
+
+Before you start contributing to any project sponsored by F5 Networks, Inc. (F5) on GitHub, you will need to sign a Contributor License Agreement (CLA).
+
+If you are signing as an individual, we recommend that you talk to your employer (if applicable) before signing the CLA since some employment agreements may have restrictions on your contributions to other projects. Otherwise by submitting a CLA you represent that you are legally entitled to grant the licenses recited therein.
+
+If your employer has rights to intellectual property that you create, such as your contributions, you represent that you have received permission to make contributions on behalf of that employer, that your employer has waived such rights for your contributions, or that your employer has executed a separate CLA with F5.
+
+If you are signing on behalf of a company, you represent that you are legally entitled to grant the license recited therein. You represent further that each employee of the entity that submits contributions is authorized to submit such contributions on behalf of the entity pursuant to the CLA.
