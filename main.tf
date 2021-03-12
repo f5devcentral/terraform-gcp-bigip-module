@@ -14,77 +14,78 @@ resource random_id module_id {
 }
 
 locals {
-  bigip_map = {
-    "mgmt_subnet_ids"     = var.mgmt_subnet_ids
-    "external_subnet_ids" = var.external_subnet_ids
-    "internal_subnet_ids" = var.internal_subnet_ids
-  }
-  mgmt_public_subnet_id = [
-    for subnet in local.bigip_map["mgmt_subnet_ids"] :
-    subnet["subnet_id"]
-    if subnet["public_ip"] == true
-  ]
-  mgmt_private_subnet_id = [
-    for subnet in local.bigip_map["mgmt_subnet_ids"] :
-    subnet["subnet_id"]
-    if subnet["public_ip"] == false
-  ]
-  mgmt_public_private_ip_primary = [
-    for private in local.bigip_map["mgmt_subnet_ids"] :
-    private["private_ip_primary"]
-    if private["public_ip"] == true
-  ]
-  mgmt_private_ip_primary = [
-    for private in local.bigip_map["mgmt_subnet_ids"] :
-    private["private_ip_primary"]
-    if private["public_ip"] == false
-  ]
-  external_public_subnet_id = [
-    for subnet in local.bigip_map["external_subnet_ids"] :
-    subnet["subnet_id"]
-    if subnet["public_ip"] == true
-  ]
-  external_private_subnet_id = [
-    for subnet in local.bigip_map["external_subnet_ids"] :
-    subnet["subnet_id"]
-    if subnet["public_ip"] == false
-  ]
-  internal_public_subnet_id = [
-    for subnet in local.bigip_map["internal_subnet_ids"] :
-    subnet["subnet_id"]
-    if subnet["public_ip"] == true
-  ]
-  internal_private_subnet_id = [
-    for subnet in local.bigip_map["internal_subnet_ids"] :
-    subnet["subnet_id"]
-    if subnet["public_ip"] == false
-  ]
-  internal_private_ip_primary = [
-    for private in local.bigip_map["internal_subnet_ids"] :
-    private["private_ip_primary"]
-    if private["public_ip"] == false
-  ]
-  external_private_ip_primary = [
-    for private in local.bigip_map["external_subnet_ids"] :
-    private["private_ip_primary"]
-    if private["public_ip"] == false
-  ]
-  external_private_ip_secondary = [
-    for private in local.bigip_map["external_subnet_ids"] :
-    private["private_ip_secondary"]
-    if private["public_ip"] == false
-  ]
-  external_public_private_ip_primary = [
-    for private in local.bigip_map["external_subnet_ids"] :
-    private["private_ip_primary"]
-    if private["public_ip"] == true
-  ]
-  external_public_private_ip_secondary = [
-    for private in local.bigip_map["external_subnet_ids"] :
-    private["private_ip_secondary"]
-    if private["public_ip"] == true
-  ]
-  total_nics      = length(concat(local.mgmt_public_subnet_id, local.mgmt_private_subnet_id, local.external_public_subnet_id, local.external_private_subnet_id, local.internal_public_subnet_id, local.internal_private_subnet_id))
+  # Emes - none of this commented section should be needed
+  # bigip_map = {
+  #   "mgmt_subnet_ids"     = var.mgmt_subnet_ids
+  #   "external_subnet_ids" = var.external_subnet_ids
+  #   "internal_subnet_ids" = var.internal_subnet_ids
+  # }
+  # mgmt_public_subnet_id = [
+  #   for subnet in local.bigip_map["mgmt_subnet_ids"] :
+  #   subnet["subnet_id"]
+  #   if subnet["public_ip"] == true
+  # ]
+  # mgmt_private_subnet_id = [
+  #   for subnet in local.bigip_map["mgmt_subnet_ids"] :
+  #   subnet["subnet_id"]
+  #   if subnet["public_ip"] == false
+  # ]
+  # mgmt_public_private_ip_primary = [
+  #   for private in local.bigip_map["mgmt_subnet_ids"] :
+  #   private["private_ip_primary"]
+  #   if private["public_ip"] == true
+  # ]
+  # mgmt_private_ip_primary = [
+  #   for private in local.bigip_map["mgmt_subnet_ids"] :
+  #   private["private_ip_primary"]
+  #   if private["public_ip"] == false
+  # ]
+  # external_public_subnet_id = [
+  #   for subnet in local.bigip_map["external_subnet_ids"] :
+  #   subnet["subnet_id"]
+  #   if subnet["public_ip"] == true
+  # ]
+  # external_private_subnet_id = [
+  #   for subnet in local.bigip_map["external_subnet_ids"] :
+  #   subnet["subnet_id"]
+  #   if subnet["public_ip"] == false
+  # ]
+  # internal_public_subnet_id = [
+  #   for subnet in local.bigip_map["internal_subnet_ids"] :
+  #   subnet["subnet_id"]
+  #   if subnet["public_ip"] == true
+  # ]
+  # internal_private_subnet_id = [
+  #   for subnet in local.bigip_map["internal_subnet_ids"] :
+  #   subnet["subnet_id"]
+  #   if subnet["public_ip"] == false
+  # ]
+  # internal_private_ip_primary = [
+  #   for private in local.bigip_map["internal_subnet_ids"] :
+  #   private["private_ip_primary"]
+  #   if private["public_ip"] == false
+  # ]
+  # external_private_ip_primary = [
+  #   for private in local.bigip_map["external_subnet_ids"] :
+  #   private["private_ip_primary"]
+  #   if private["public_ip"] == false
+  # ]
+  # external_private_ip_secondary = [
+  #   for private in local.bigip_map["external_subnet_ids"] :
+  #   private["private_ip_secondary"]
+  #   if private["public_ip"] == false
+  # ]
+  # external_public_private_ip_primary = [
+  #   for private in local.bigip_map["external_subnet_ids"] :
+  #   private["private_ip_primary"]
+  #   if private["public_ip"] == true
+  # ]
+  # external_public_private_ip_secondary = [
+  #   for private in local.bigip_map["external_subnet_ids"] :
+  #   private["private_ip_secondary"]
+  #   if private["public_ip"] == true
+  # ]
+  # total_nics      = length(concat(local.mgmt_public_subnet_id, local.mgmt_private_subnet_id, local.external_public_subnet_id, local.external_private_subnet_id, local.internal_public_subnet_id, local.internal_private_subnet_id))
   instance_prefix = format("%s-%s", var.prefix, random_id.module_id.hex)
 }
 
@@ -155,11 +156,11 @@ resource "google_project_iam_custom_role" "gcp_custom_roles" {
 
 
 resource google_compute_address mgmt_public_ip {
-  count = length(local.mgmt_public_subnet_id)
+  count = length([for address in compact([for subnet in var.mgmt_subnet_ids: subnet.public_ip]): address if address])
   name  = format("%s-mgmt-publicip-%s", var.prefix, random_id.module_id.hex)
 }
 resource google_compute_address external_public_ip {
-  count = length(local.external_public_subnet_id)
+  count = length([for address in compact([for subnet in var.external_subnet_ids: subnet.public_ip]): address if address])
   name  = format("%s-ext-publicip-%s-%s", var.prefix, count.index, random_id.module_id.hex)
 }
 
@@ -187,67 +188,57 @@ resource google_compute_instance f5vm01 {
     scopes = ["cloud-platform"]
   }
   can_ip_forward = true
-  #Assign Public IP to Management Nic
+  #Assign to Management Nic
   dynamic network_interface {
-    for_each = local.mgmt_public_subnet_id
+    for_each = [for subnet in var.mgmt_subnet_ids: subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
     content {
-      subnetwork = network_interface.value
-      access_config {
-        nat_ip = google_compute_address.mgmt_public_ip[tonumber(network_interface.key)].address
+      subnetwork = network_interface.value.subnet_id
+      network_ip = network_interface.value.private_ip_primary
+      dynamic access_config {
+        for_each = element(coalescelist(compact([network_interface.value.public_ip]), [false]), 0) ? [1] : []
+        content {
+          nat_ip = google_compute_address.mgmt_public_ip[tonumber(network_interface.key)].address
+        }
       }
-    }
-  }
-  dynamic network_interface {
-    for_each = local.mgmt_private_subnet_id
-    content {
-      subnetwork = network_interface.value
-      network_ip = local.mgmt_private_ip_primary[tonumber(network_interface.key)]
-      //network_ip = length(local.mgmt_private_ip_primary) > 0 ? local.mgmt_private_ip_primary[0]: ""
     }
   }
 
-  #Assign Public IP to external Nic
+  #Assign external Nic
   dynamic network_interface {
-    for_each = local.external_public_subnet_id
+    for_each = [for subnet in var.external_subnet_ids: subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
     content {
-      subnetwork = network_interface.value
-      access_config {
-        nat_ip = google_compute_address.external_public_ip[tonumber(network_interface.key)].address
+      subnetwork = network_interface.value.subnet_id
+      network_ip = network_interface.value.private_ip_primary
+      dynamic access_config {
+        for_each = element(coalescelist(compact([network_interface.value.public_ip]), [false]), 0) ? [1] : []
+        content {
+          nat_ip = google_compute_address.external_public_ip[tonumber(network_interface.key)].address
+        }
       }
-      alias_ip_range {
-        ip_cidr_range = local.external_public_private_ip_secondary[tonumber(network_interface.key)] != "" ? local.external_public_private_ip_secondary[tonumber(network_interface.key)] : "/32"
-      }
-    }
-  }
-  #Create External NIC with Private IP Static/Dynamic
-  dynamic network_interface {
-    for_each = local.external_private_subnet_id
-    content {
-      subnetwork = network_interface.value
-      network_ip = local.external_private_ip_primary[tonumber(network_interface.key)]
-      alias_ip_range {
-        ip_cidr_range = local.external_private_ip_secondary[tonumber(network_interface.key)] != "" ? local.external_private_ip_secondary[tonumber(network_interface.key)] : "/32"
+      dynamic alias_ip_range {
+        for_each = compact([network_interface.value.private_ip_secondary])
+        content {
+          ip_cidr_range = alias_ip_range.value
+        }
       }
     }
   }
+  
+  # Internal NIC
   dynamic network_interface {
-    for_each = local.internal_public_subnet_id
+    for_each = [for subnet in var.internal_subnet_ids: subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
     content {
-      subnetwork = network_interface.value
-      network_ip = local.internal_public_private_ip_primary[tonumber(network_interface.key)]
-      //network_ip = length(local.internal_public_private_ip_primary) > 0 ? local.internal_public_private_ip_primary[0]: ""
-      access_config {
+      subnetwork = network_interface.value.subnet_id
+      network_ip = network_interface.value.private_ip_primary
+      dynamic access_config {
+        for_each = element(coalescelist(compact([network_interface.value.public_ip]), [false]), 0) ? [1] : []
+        content {
+          nat_ip = google_compute_address.internal_public_ip[tonumber(network_interface.key)].address
+        }
       }
     }
   }
-  #Create Internal Nic with Dynamic Private IP/Static Private IP
-  dynamic network_interface {
-    for_each = local.internal_private_subnet_id
-    content {
-      subnetwork = network_interface.value
-      network_ip = local.internal_private_ip_primary[tonumber(network_interface.key)]
-    }
-  }
+
   metadata_startup_script = data.template_file.startup_script.rendered
   provisioner "local-exec" {
     command = "sleep 100"
