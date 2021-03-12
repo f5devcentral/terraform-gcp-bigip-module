@@ -18,3 +18,6 @@ output private_addresses {
   value = [google_compute_instance.f5vm01.network_interface[*].network_ip]
 }
 
+output service_account {
+  value = google_service_account.sa.email
+}
