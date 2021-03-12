@@ -3,7 +3,7 @@ output mgmtPublicIP {
 }
 output mgmtPort {
   description = "Mgmt Port"
-  value       = local.total_nics > 1 ? "443" : "8443"
+  value       = length(google_compute_instance.f5vm01.network_interface) > 1 ? "443" : "8443"
 }
 output f5_username {
   value = var.f5_username
