@@ -169,3 +169,8 @@ variable INIT_URL {
   type        = string
   default     = "https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/v1.2.0/dist/f5-bigip-runtime-init-1.2.0-1.gz.run"
 }
+
+variable labels {
+  description = "An optional map of key:value labels to add to the instance"
+  type        = map(string)
+  default     = {}
