@@ -132,20 +132,21 @@ data "google_secret_manager_secret_version" "secret" {
 }
 
 resource "google_service_account" "sa" {
+  count = var.service_account != "" ? 0 : 1
   account_id   = format("%s", random_string.sa_role.result)
   display_name = format("%s", random_string.sa_role.result)
   description = "Service accounts for GCP IAM authentication"
 }
 
 resource "google_project_iam_member" "gcp_role_member_assignment" {
-  count   = var.gcp_secret_manager_authentication ? 1 : 0
+  count   = var.gcp_secret_manager_authentication && length(google_service_account.sa) > 0 ? 1 : 0
   project = var.project_id
   role    = format("projects/${var.project_id}/roles/%s",random_string.sa_role.result)
-  member  = "serviceAccount:${google_service_account.sa.email}"
+  member  = "serviceAccount:${google_service_account.sa.0.email}"
 }
 
 resource "google_project_iam_custom_role" "gcp_custom_roles" {
-  count       = var.gcp_secret_manager_authentication ? 1 : 0
+  count       = var.gcp_secret_manager_authentication && length(google_service_account.sa) > 0 ? 1 : 0
   role_id     = random_string.sa_role.result
   title       = random_string.sa_role.result
   description = "IAM for authentication"
@@ -182,7 +183,7 @@ resource google_compute_instance f5vm01 {
     }
   }
   service_account {
-    email  = google_service_account.sa.email
+    email  = element(coalescelist([var.service_account], google_service_account.sa.*.email), 0)
     scopes = ["cloud-platform"]
   }
   can_ip_forward = true

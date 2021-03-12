@@ -19,5 +19,5 @@ output private_addresses {
 }
 
 output service_account {
-  value = google_service_account.sa.email
+  value = element(coalescelist([var.service_account], google_service_account.sa.*.email), 0)
 }

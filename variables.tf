@@ -174,3 +174,10 @@ variable labels {
   description = "An optional map of key:value labels to add to the instance"
   type        = map(string)
   default     = {}
+}
+
+variable service_account {
+  description = "Optional service account email to use with BIG-IP. If left blank (default), a service account will be generated."
+  type = string
+  default = ""
+}
