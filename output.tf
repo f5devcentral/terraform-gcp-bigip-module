@@ -3,7 +3,7 @@ output mgmtPublicIP {
 }
 output mgmtPort {
   description = "Mgmt Port"
-  value       = local.total_nics > 1 ? "443" : "8443"
+  value       = length(google_compute_instance.f5vm01.network_interface) > 1 ? "443" : "8443"
 }
 output f5_username {
   value = var.f5_username
@@ -18,3 +18,6 @@ output private_addresses {
   value = [google_compute_instance.f5vm01.network_interface[*].network_ip]
 }
 
+output service_account {
+  value = element(coalescelist([var.service_account], google_service_account.sa.*.email), 0)
+}
