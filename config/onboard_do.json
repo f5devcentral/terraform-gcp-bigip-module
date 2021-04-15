@@ -23,14 +23,14 @@
             "class": "User",
             "userType": "regular",
             "password": "{{{ ADMIN_PASS }}}",
-            "keys": ["{{{ SSH_KEYS }}}"]
+            "keys": ["{{{ SSH_KEYS }}}"],
             "shell": "bash"
         },
         "{{{ USER_NAME }}}": {
             "class": "User",
             "userType": "regular",
             "password": "{{{ ADMIN_PASS }}}",
-            "keys": ["{{{ SSH_KEYS }}}"]
+            "keys": ["{{{ SSH_KEYS }}}"],
             "shell": "none",
             "partitionAccess": {
                 "all-partitions": {
