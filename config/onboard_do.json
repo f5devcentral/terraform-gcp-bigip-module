@@ -31,7 +31,7 @@
             "userType": "regular",
             "password": "{{{ ADMIN_PASS }}}",
             "keys": ["{{{ SSH_KEYS }}}"],
-            "shell": "none",
+            "shell": "bash",
             "partitionAccess": {
                 "all-partitions": {
                     "role": "admin"
