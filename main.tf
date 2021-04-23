@@ -98,11 +98,11 @@ resource random_string password {
 }
 
 resource random_string sa_role {
-  length      = 16
-  min_lower   = 1
-  number      = false
-  upper       = false
-  special     = false
+  length    = 16
+  min_lower = 1
+  number    = false
+  upper     = false
+  special   = false
 }
 
 data "template_file" "startup_script" {
@@ -113,16 +113,17 @@ data "template_file" "startup_script" {
     bigip_username                    = var.f5_username
     gcp_secret_manager_authentication = var.gcp_secret_manager_authentication
     bigip_password                    = (var.f5_password == "") ? (var.gcp_secret_manager_authentication ? var.gcp_secret_name : random_string.password.result) : var.f5_password
-    INIT_URL               = var.INIT_URL,
-    DO_URL                 = var.DO_URL,
-    DO_VER                 = split("/", var.DO_URL)[7]
-    AS3_URL                = var.AS3_URL,
-    AS3_VER                = split("/", var.AS3_URL)[7]
-    TS_VER                 = split("/", var.TS_URL)[7]
-    TS_URL                 = var.TS_URL,
-    CFE_VER                = split("/", var.CFE_URL)[7]
-    CFE_URL                = var.CFE_URL,
-    FAST_URL               = var.FAST_URL
+    ssh_keypair                       = file(var.f5_ssh_publickey)
+    INIT_URL                          = var.INIT_URL,
+    DO_URL                            = var.DO_URL,
+    DO_VER                            = split("/", var.DO_URL)[7]
+    AS3_URL                           = var.AS3_URL,
+    AS3_VER                           = split("/", var.AS3_URL)[7]
+    TS_VER                            = split("/", var.TS_URL)[7]
+    TS_URL                            = var.TS_URL,
+    CFE_VER                           = split("/", var.CFE_URL)[7]
+    CFE_URL                           = var.CFE_URL,
+    FAST_URL                          = var.FAST_URL
   }
 }
 
@@ -133,16 +134,16 @@ data "google_secret_manager_secret_version" "secret" {
 }
 
 resource "google_service_account" "sa" {
-  count = var.service_account != "" ? 0 : 1
+  count        = var.service_account != "" ? 0 : 1
   account_id   = format("%s", random_string.sa_role.result)
   display_name = format("%s", random_string.sa_role.result)
-  description = "Service accounts for GCP IAM authentication"
+  description  = "Service accounts for GCP IAM authentication"
 }
 
 resource "google_project_iam_member" "gcp_role_member_assignment" {
   count   = var.gcp_secret_manager_authentication && var.service_account == "" ? 1 : 0
   project = var.project_id
-  role    = format("projects/${var.project_id}/roles/%s",random_string.sa_role.result)
+  role    = format("projects/${var.project_id}/roles/%s", random_string.sa_role.result)
   member  = "serviceAccount:${google_service_account.sa.0.email}"
 }
 
@@ -156,11 +157,11 @@ resource "google_project_iam_custom_role" "gcp_custom_roles" {
 
 
 resource google_compute_address mgmt_public_ip {
-  count = length([for address in compact([for subnet in var.mgmt_subnet_ids: subnet.public_ip]): address if address])
+  count = length([for address in compact([for subnet in var.mgmt_subnet_ids : subnet.public_ip]) : address if address])
   name  = format("%s-mgmt-publicip-%s", var.prefix, random_id.module_id.hex)
 }
 resource google_compute_address external_public_ip {
-  count = length([for address in compact([for subnet in var.external_subnet_ids: subnet.public_ip]): address if address])
+  count = length([for address in compact([for subnet in var.external_subnet_ids : subnet.public_ip]) : address if address])
   name  = format("%s-ext-publicip-%s-%s", var.prefix, count.index, random_id.module_id.hex)
 }
 
@@ -190,7 +191,7 @@ resource google_compute_instance f5vm01 {
   can_ip_forward = true
   #Assign to Management Nic
   dynamic network_interface {
-    for_each = [for subnet in var.mgmt_subnet_ids: subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
+    for_each = [for subnet in var.mgmt_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
     content {
       subnetwork = network_interface.value.subnet_id
       network_ip = network_interface.value.private_ip_primary
@@ -205,7 +206,7 @@ resource google_compute_instance f5vm01 {
 
   #Assign external Nic
   dynamic network_interface {
-    for_each = [for subnet in var.external_subnet_ids: subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
+    for_each = [for subnet in var.external_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
     content {
       subnetwork = network_interface.value.subnet_id
       network_ip = network_interface.value.private_ip_primary
@@ -223,10 +224,10 @@ resource google_compute_instance f5vm01 {
       }
     }
   }
-  
+
   # Internal NIC
   dynamic network_interface {
-    for_each = [for subnet in var.internal_subnet_ids: subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
+    for_each = [for subnet in var.internal_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
     content {
       subnetwork = network_interface.value.subnet_id
       network_ip = network_interface.value.private_ip_primary
@@ -240,8 +241,14 @@ resource google_compute_instance f5vm01 {
   }
 
   metadata_startup_script = data.template_file.startup_script.rendered
+
+  metadata = {
+
+    sshKeys = file(var.f5_ssh_publickey)
+  }
+
   provisioner "local-exec" {
     command = "sleep 100"
   }
-  labels   = var.labels
+  labels = var.labels
 }

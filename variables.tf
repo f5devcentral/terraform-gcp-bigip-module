@@ -37,7 +37,7 @@ variable "preemptible" {
 
 variable "image" {
   type        = string
-  default     = "projects/f5-7626-networks-public/global/images/f5-bigip-15-1-2-0-0-9-payg-good-5gbps-201110225418"
+  default     = "projects/f5-7626-networks-public/global/images/f5-bigip-16-0-1-1-0-0-6-payg-good-25mbps-210129040032"
   description = "This can be one of: the image's self_link, projects/{project}/global/images/{image}, projects/{project}/global/images/family/{family}, global/images/{image}, global/images/family/{family}, family/{family}, {project}/{family}, {project}/{image}, {family}, or {image}."
 }
 
@@ -178,6 +178,12 @@ variable labels {
 
 variable service_account {
   description = "Optional service account email to use with BIG-IP. If left blank (default), a service account will be generated."
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
+
+variable f5_ssh_publickey {
+  description = "Path to the public key to be used for ssh access to the VM.  Only used with non-Windows vms and can be left as-is even if using Windows vms. If specifying a path to a certification on a Windows machine to provision a linux vm use the / in the path versus backslash. e.g. c:/home/id_rsa.pub"
+  default     = " "
+}
+

@@ -2,7 +2,6 @@
 
 mkdir -p  /var/log/cloud /config/cloud /var/config/rest/downloads
 
-
 LOG_FILE=/var/log/cloud/startup-script.log
 [[ ! -f $LOG_FILE ]] && touch $LOG_FILE || { echo "Run Only Once. Exiting"; exit; }
 npipe=/tmp/$$.tmp
@@ -16,7 +15,6 @@ exec 2>&1
 
 mkdir -p /config/cloud
 
-curl -o /config/cloud/do_w_admin.json -s --fail --retry 60 -m 10 -L https://raw.githubusercontent.com/f5devcentral/terraform-azure-bigip-module/dev_saketha_runtimeinit/config/onboard_do.json
 mkdir -p /var/lib/cloud/icontrollx_installs
 
 cat << 'EOF' > /config/cloud/runtime-init-conf.yaml
@@ -25,6 +23,9 @@ runtime_parameters:
   - name: USER_NAME
     type: static
     value: ${bigip_username}
+  - name: SSH_KEYS
+    type: static
+    value: "${ssh_keypair}"
 EOF
 
 if ${gcp_secret_manager_authentication}
@@ -72,7 +73,7 @@ extension_services:
   service_operations:
     - extensionType: do
       type: url
-      value: file:///config/cloud/do_w_admin.json
+      value: https://raw.githubusercontent.com/f5devcentral/terraform-gcp-bigip-module/master/config/onboard_do.json
 EOF
 
 #PACKAGE_URL='https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/v1.1.0/dist/f5-bigip-runtime-init-1.1.0-1.gz.run'
