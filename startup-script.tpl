@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /usr/lib/bigstart/bigip-ready-functions
+
 mkdir -p  /var/log/cloud /config/cloud /var/config/rest/downloads
 
 LOG_FILE=/var/log/cloud/startup-script.log
@@ -81,7 +83,60 @@ for i in {1..30}; do
 curl -fv --retry 1 --connect-timeout 5 -L ${INIT_URL} -o "/var/config/rest/downloads/f5-bigip-runtime-init.gz.run" && break || sleep 10
 done
 
+
 # Install
 bash /var/config/rest/downloads/f5-bigip-runtime-init.gz.run -- '--cloud gcp'
 
 /usr/local/bin/f5-bigip-runtime-init --config-file /config/cloud/runtime-init-conf.yaml
+
+COMPUTE_BASE_URL="http://metadata.google.internal/computeMetadata/v1"
+
+if ${NIC_COUNT}
+then
+   cat << 'EOF' >> /config/cloud/nic_swap.sh
+   #!/bin/bash
+   source /usr/lib/bigstart/bigip-ready-functions
+   echo "before nic swapping"
+   tmsh list sys db provision.1nicautoconfig
+   tmsh list sys db provision.managementeth
+   echo "after nic swapping"
+   bigstart stop tmm
+   tmsh modify sys db provision.managementeth value eth1
+   tmsh modify sys db provision.1nicautoconfig value disable
+   bigstart start tmm
+   wait_bigip_ready
+   echo "---Mgmt interface setting---"
+   tmsh list sys db provision.managementeth
+   tmsh list sys db provision.1nicautoconfig
+   sed -i "s/iface0=eth0/iface0=eth1/g" /etc/ts/common/image.cfg
+   echo "Done changing interface"
+   echo "Set TMM networks"
+   MGMTADDRESS=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/ip)
+   MGMTMASK=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/subnetmask)
+   MGMTGATEWAY=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/gateway)
+   MGMTNETWORK=$(/bin/ipcalc -n $MGMTADDRESS $MGMTMASK | cut -d= -f2)
+   INT1GATEWAY=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/gateway)
+   echo $MGMTADDRESS
+   echo $MGMTMASK
+   echo $MGMTGATEWAY
+   echo $MGMTNETWORK   
+   tmsh modify sys global-settings gui-setup disabled
+   tmsh modify sys global-settings mgmt-dhcp disabled
+   tmsh delete sys management-route all 
+   tmsh delete sys management-ip all
+   tmsh create sys management-ip $${MGMTADDRESS}/32
+   tmsh create sys management-route mgmt_gw network $${MGMTGATEWAY}/32 type interface mtu 1460
+   tmsh create sys management-route mgmt_net network $${MGMTNETWORK}/$${MGMTMASK} gateway $${MGMTGATEWAY} mtu 1460
+   tmsh create sys management-route default gateway $${MGMTGATEWAY} mtu 1460
+   tmsh modify sys global-settings remote-host add { metadata.google.internal { hostname metadata.google.internal addr 169.254.169.254 } }
+   tmsh modify sys management-dhcp sys-mgmt-dhcp-config request-options delete { ntp-servers }
+   tmsh save /sys config
+   reboot
+EOF
+fi
+
+if ${NIC_COUNT}
+then
+   chmod +x /config/cloud/nic_swap.sh
+   /config/cloud/nic_swap.sh >> $LOG_FILE
+fi

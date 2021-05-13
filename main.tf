@@ -86,7 +86,10 @@ locals {
   #   if private["public_ip"] == true
   # ]
   # total_nics      = length(concat(local.mgmt_public_subnet_id, local.mgmt_private_subnet_id, local.external_public_subnet_id, local.external_private_subnet_id, local.internal_public_subnet_id, local.internal_private_subnet_id))
-  instance_prefix = format("%s-%s", var.prefix, random_id.module_id.hex)
+  external_nic_count = length([for subnet in var.external_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]) == 0 ? 0 : 1
+  internal_nic_count = length([for subnet in var.internal_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]) == 0 ? 0 : 1
+  multiple_nic_count = local.external_nic_count + local.internal_nic_count
+  instance_prefix    = format("%s-%s", var.prefix, random_id.module_id.hex)
 }
 
 resource random_string password {
@@ -124,6 +127,7 @@ data "template_file" "startup_script" {
     CFE_VER                           = split("/", var.CFE_URL)[7]
     CFE_URL                           = var.CFE_URL,
     FAST_URL                          = var.FAST_URL
+    NIC_COUNT                         = local.multiple_nic_count > 0 ? true : false
   }
 }
 
@@ -189,20 +193,6 @@ resource google_compute_instance f5vm01 {
     scopes = ["cloud-platform"]
   }
   can_ip_forward = true
-  #Assign to Management Nic
-  dynamic network_interface {
-    for_each = [for subnet in var.mgmt_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
-    content {
-      subnetwork = network_interface.value.subnet_id
-      network_ip = network_interface.value.private_ip_primary
-      dynamic access_config {
-        for_each = element(coalescelist(compact([network_interface.value.public_ip]), [false]), 0) ? [1] : []
-        content {
-          nat_ip = google_compute_address.mgmt_public_ip[tonumber(network_interface.key)].address
-        }
-      }
-    }
-  }
 
   #Assign external Nic
   dynamic network_interface {
@@ -224,6 +214,25 @@ resource google_compute_instance f5vm01 {
       }
     }
   }
+
+
+  #Assign to Management Nic
+  dynamic network_interface {
+    for_each = [for subnet in var.mgmt_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
+    content {
+      subnetwork = network_interface.value.subnet_id
+      network_ip = network_interface.value.private_ip_primary
+      dynamic access_config {
+        for_each = element(coalescelist(compact([network_interface.value.public_ip]), [false]), 0) ? [1] : []
+        content {
+          nat_ip = google_compute_address.mgmt_public_ip[tonumber(network_interface.key)].address
+        }
+      }
+    }
+  }
+
+
+
 
   # Internal NIC
   dynamic network_interface {
@@ -248,7 +257,7 @@ resource google_compute_instance f5vm01 {
   }
 
   provisioner "local-exec" {
-    command = "sleep 100"
+    command = "sleep 250"
   }
   labels = var.labels
 }
