@@ -16,4 +16,6 @@ output public_addresses {
 output private_addresses {
   value = module.bigip.*.private_addresses
 }
-
+output service_account {
+  value = module.bigip.*.service_account
+}
