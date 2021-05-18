@@ -149,6 +149,7 @@ These variables must be set in the module block when using this module.
 | project\_id | The GCP project identifier where the cluster will be created | `string` |
 | zone  | The compute zones which will host the BIG-IP VMs | `string` |
 | mgmt\_subnet\_ids | Map with Subnet-id and public_ip as keys for the management subnet | `List of Maps` |
+| service\_account | service account email to use with BIG-IP | `string` |
 
 #### Optional Input Variables
 
@@ -158,7 +159,7 @@ These variables have default values and don't have to be set to use this module.
 |------|-------------|------|---------|
 | f5\_username | The admin username of the F5   BIG-IP that will be deployed | `string` | bigipuser |
 | f5\_password | Password of the F5  BIG-IP that will be deployed.If this is not specified random password will get generated | `string` | "" |
-| image | The self-link URI for a BIG-IP image to use as a base for the VM cluster  | `string` | "projects/f5-7626-networks-public/global/images/f5-bigip-15-1-2-0-0-9-payg-good-5gbps-201110225418" |
+| image | The self-link URI for a BIG-IP image to use as a base for the VM cluster  | `string` | "projects/f5-7626-networks-public/global/images/f5-bigip-16-0-1-1-0-0-6-payg-good-25mbps-210129040032" |
 | min_cpu_platform | Minimum CPU platform for the VM instance such as Intel Haswell or Intel Skylake | string` | Intel Skylake |
 | machine_type | The machine type to create,if you want to update this value (resize the VM) after initial creation, you must set allow_stopping_for_update to true | string` | n1-standard-4 |
 | automatic_restart | Specifies if the instance should be restarted if it was terminated by Compute Engine (not a user) | `bool` | true |
@@ -189,14 +190,7 @@ These variables have default values and don't have to be set to use this module.
 | bigip\_password | BIG-IP Password  |
 | public_addresses | List of BIG-IP public addresses |
 | private_addresses | List of BIG-IP private addresses |
-
-
-## Note
-
-```
-Currently we are not taking service account as an input, as we saw some issues when integrating with runtime-init. So we are creating service account for users and updating IAM profile to it, so that we can use gcp secret manager in run-time init.
-```
-
+| service_account | The service account that will be used for the BIG-IP VMs |
 
 ## Support Information
 

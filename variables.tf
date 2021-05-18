@@ -177,9 +177,8 @@ variable labels {
 }
 
 variable service_account {
-  description = "Optional service account email to use with BIG-IP. If left blank (default), a service account will be generated."
+  description = "service account email to use with BIG-IP vms"
   type        = string
-  default     = ""
 }
 
 variable f5_ssh_publickey {
