@@ -26,3 +26,8 @@ variable image {
   default     = "projects/f5-7626-networks-public/global/images/f5-bigip-16-0-1-1-0-0-6-payg-good-25mbps-210129040032"
   description = "The self-link URI for a BIG-IP image to use as a base for the VM cluster.This can be an official F5 image from GCP Marketplace, or a customised image."
 }
+
+variable service_account {
+  description = "service account email to use with BIG-IP vms"
+  type        = string
+}
