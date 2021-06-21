@@ -55,7 +55,7 @@ pre_onboard_enabled:
   - name: provision_rest
     type: inline
     commands:
-      - /usr/bin/setdb provision.extramb 500
+      - /usr/bin/setdb provision.extramb 1024
       - /usr/bin/setdb restjavad.useextramb true
 extension_packages: 
   install_operations:
