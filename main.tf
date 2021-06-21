@@ -127,6 +127,7 @@ data "template_file" "startup_script" {
     CFE_VER                           = split("/", var.CFE_URL)[7]
     CFE_URL                           = var.CFE_URL,
     FAST_URL                          = var.FAST_URL
+    FAST_VER                          = split("/", var.FAST_URL)[7]
     NIC_COUNT                         = local.multiple_nic_count > 0 ? true : false
   }
 }

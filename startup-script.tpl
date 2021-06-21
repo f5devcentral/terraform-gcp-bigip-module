@@ -71,6 +71,9 @@ extension_packages:
     - extensionType: cf
       extensionVersion: ${CFE_VER}
       extensionUrl: ${CFE_URL}
+    - extensionType: fast
+      extensionVersion: ${FAST_VER}
+      extensionUrl: ${FAST_URL}
 extension_services: 
   service_operations:
     - extensionType: do
