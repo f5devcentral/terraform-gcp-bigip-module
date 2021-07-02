@@ -11,6 +11,7 @@ This module is supported from Terraform 0.13 version onwards.
 Below templates are tested and worked in the following version 
 
 Terraform v0.14.0
+
 + provider registry.terraform.io/hashicorp/google v3.51.0
 + provider registry.terraform.io/hashicorp/null v2.1.2
 + provider registry.terraform.io/hashicorp/random v3.0.1
@@ -20,7 +21,7 @@ Terraform v0.14.0
 
 This module is supported in the following bigip and terraform version
 
-| BIGIP version | Terraform 0.14 | 
+| BIGIP version | Terraform 0.14 |
 |---------------|----------------|
 | BIG-IP 16.x  | X |
 | BIG-IP 15.x  | X |
@@ -57,12 +58,11 @@ With Dynamic private ip allocation,we have to pass null value to primary/seconda
 
 Below example snippets show how this module is called. ( Dynamic private ip allocation )
 
-```
-
-Example 1-NIC Deployment Module usage
-
+```hcl
+#
+#Example 1-NIC Deployment Module usage
+#
 module bigip {
-  count           = var.instance_count
   source          = "../.."
   prefix          = "bigip-gcp-1nic"
   project_id      = var.project_id
@@ -72,10 +72,10 @@ module bigip {
   mgmt_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
 }
 
-Example 2-NIC Deployment Module usage
-
+#
+#Example 2-NIC Deployment Module usage
+#
 module "bigip" {
-  count               = var.instance_count
   source              = "../.."
   prefix              = "bigip-gcp-2nic"
   project_id          = var.project_id
@@ -86,11 +86,10 @@ module "bigip" {
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = "" }]
 }
 
-
-Example 3-NIC Deployment  Module usage 
-
+#
+#Example 3-NIC Deployment  Module usage 
+#
 module bigip {
-  count               = var.instance_count
   source              = "../.."
   prefix              = "bigip-gcp-3nic"
   project_id          = var.project_id
@@ -101,12 +100,10 @@ module bigip {
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = "" }]
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "", "private_ip_secondary" = "" }]
 }
-
-
-Example 4-NIC Deployment  Module usage(with 2 external public interfaces,one management and internal interfaces)
-
-module bigip s
-  count               = vas.instance_count
+#
+#Example 4-NIC Deployment  Module usage(with 2 external public interfaces,one management and internal interfaces)
+#
+module bigip {
   source              = "../.."
   prefix              = "bigip-gcp-4nic"
   project_id          = var.project_id
@@ -114,23 +111,22 @@ module bigip s
   image               = var.image
   service_account     = var.service_account
   mgmt_subnet_ids     = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
-  external_subnet_ids = ([{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = ""  },                                         { "subnet_id" = google_compute_subnetwork.external_subnetwork2.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = ""  }])
+  external_subnet_ids = ([{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = ""  },{ "subnet_id" = google_compute_subnetwork.external_subnetwork2.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = ""  }])
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "" }]
 }
-
-.............
-
-Similarly we can have N-nic deployments based on user provided subnet_ids.
-With module count, user can deploy multiple bigip instances in the gcp cloud (with the default value of count being one )
-
 ```
+
++ Similarly we can have N-nic deployments based on user provided subnet_ids.
+
++ With module count, user can deploy multiple bigip instances in the gcp cloud (with the default value of count being one )
+
 #### Below is the example snippet for private ip allocation
 
-```
-Example 3-NIC Deployment with static private ip allocation
-
+```hcl
+#
+#Example 3-NIC Deployment with static private ip allocation
+#
 module bigip {
-  count               = var.instance_count
   source              = "../.."
   prefix              = "bigip-gcp-3nic"
   project_id          = var.project_id
@@ -143,7 +139,6 @@ module bigip {
 }
 
 ```
-
 
 #### Required Input Variables
 
