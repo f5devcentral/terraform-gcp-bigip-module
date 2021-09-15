@@ -37,6 +37,13 @@ This module is supported in the following bigip and terraform version
 |:point_up:  | To use Gcp secret manager ,we have to enable the variable "gcp_secret_manager_authentication" to true and supply the variables with secret name,version |
 |-----|----|
 
+## Custom User data
+
+* By default custom_user_data will be null,bigip module will use default f5_onboard.tmpl file contents for initial BIGIP onboard connfiguration
+
+* If users desire custom onboard configuration,we can use this variable and pass contents of custom script to the variable to have custom onboard bigip  configuration. ( some examples of custom runtime scripts are available in examples section )
+
+
 ## Example Usage
 
 We have provided some common deployment [examples](https://github.com/f5devcentral/terraform-gcp-bigip-module/tree/main/examples) 
@@ -70,6 +77,7 @@ module bigip {
   image           = var.image
   service_account = var.service_account
   mgmt_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
+  custom_user_data  = var.custom_user_data
 }
 
 Example 2-NIC Deployment Module usage
@@ -84,6 +92,7 @@ module "bigip" {
   service_account     = var.service_account
   mgmt_subnet_ids     = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = "" }]
+  custom_user_data       = var.custom_user_data
 }
 
 
@@ -100,6 +109,7 @@ module bigip {
   mgmt_subnet_ids     = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = "" }]
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "", "private_ip_secondary" = "" }]
+  custom_user_data       = var.custom_user_data
 }
 
 
@@ -140,6 +150,7 @@ module bigip {
   mgmt_subnet_ids     = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "10.2.1.2", "private_ip_secondary" = "10.2.1.3" }]
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "", "private_ip_secondary" = "" }]
+  custom_user_data       = var.custom_user_data
 }
 
 ```
@@ -156,6 +167,7 @@ These variables must be set in the module block when using this module.
 | zone  | The compute zones which will host the BIG-IP VMs | `string` |
 | mgmt\_subnet\_ids | Map with Subnet-id and public_ip as keys for the management subnet | `List of Maps` |
 | service\_account | service account email to use with BIG-IP | `string` |
+| custom\_user\-data | Provide a custom bash script or cloud-init script the BIG-IP will run on creation | string  |   null   |
 
 #### Optional Input Variables
 
