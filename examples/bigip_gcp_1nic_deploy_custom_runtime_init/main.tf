@@ -58,5 +58,6 @@ module bigip {
   image           = var.image
   service_account = var.service_account
   mgmt_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
+  custom_user_data = var.custom_user_data
 }
 

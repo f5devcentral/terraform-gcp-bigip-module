@@ -37,11 +37,68 @@ This module is supported in the following bigip and terraform version
 |:point_up:  | To use Gcp secret manager ,we have to enable the variable "gcp_secret_manager_authentication" to true and supply the variables with secret name,version |
 |-----|----|
 
+## BYOL Licensing
+
+This template uses PayGo BIG-IP image for the deployment (as default). If you would like to use BYOL licenses, then these following steps are needed:
+
+1.Find available images/versions with "byol" in the name using Google gcloud:
+
+```
+ gcloud compute images list --project=f5-7626-networks-public | grep f5
+
+        # example output...
+
+        --snippet--
+        f5-bigip-13-1-3-2-0-0-4-payg-best-1gbps-20191105210022
+        f5-bigip-13-1-3-2-0-0-4-payg-best-200mbps-20191105210022
+        f5-bigip-13-1-3-2-0-0-4-byol-all-modules-2slot-20191105200157
+        ...and some more
+        f5-bigip-14-1-2-3-0-0-5-byol-ltm-1boot-loc-191218142225
+        f5-bigip-15-1-2-1-0-0-10-payg-best-1gbps-210115161130
+        f5-bigip-15-1-2-1-0-0-10-byol-ltm-2boot-loc-210115160742
+        ...and more...
+```
+2.In the "variables.tf", modify image_name with the image name from gcloud CLI results
+
+```
+        # BIGIP Image
+        variable image_name { default = "projects/f5-7626-networks-public/global/images/f5-bigip-15-1-2-1-0-0-10-byol-ltm-2boot-loc-210115160742" }
+```
+3. Add the corresponding license key in DO declaration( Declarative Onboarding ), this DO can be in custom run-time-int script or outside of it.
+   ( https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/bigip-examples.html#standalone-declaration )
+
+```
+         "myLicense": {
+          "class": "License",
+          "licenseType": "regKey",
+          "regKey": "${regKey}"
+      },
+```
+
 ## Custom User data
 
 * By default custom_user_data will be null,bigip module will use default f5_onboard.tmpl file contents for initial BIGIP onboard connfiguration
 
-* If users desire custom onboard configuration,we can use this variable and pass contents of custom script to the variable to have custom onboard bigip  configuration. ( some examples of custom runtime scripts are available in examples section )
+* If users desire custom onboard configuration,we can use this variable and pass contents of custom script to the variable to have custom onboard bigip  configuration. ( An example is provided in examples section  )
+
+```
+Example 3-NIC Deployment with custom run-time-init
+
+module bigip {
+  count               = var.instance_count
+  source              = "../.."
+  prefix              = "bigip-gcp-3nic"
+  project_id          = var.project_id
+  zone                = var.zone
+  image               = var.image
+  service_account     = var.service_account
+  mgmt_subnet_ids     = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
+  external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = "" }]
+  internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "", "private_ip_secondary" = "" }]
+  custom_user_data       = var.custom_user_data
+}
+
+```
 
 
 ## Example Usage
@@ -77,7 +134,6 @@ module bigip {
   image           = var.image
   service_account = var.service_account
   mgmt_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
-  custom_user_data  = var.custom_user_data
 }
 
 Example 2-NIC Deployment Module usage
@@ -92,7 +148,6 @@ module "bigip" {
   service_account     = var.service_account
   mgmt_subnet_ids     = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = "" }]
-  custom_user_data       = var.custom_user_data
 }
 
 
@@ -109,7 +164,6 @@ module bigip {
   mgmt_subnet_ids     = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = "" }]
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "", "private_ip_secondary" = "" }]
-  custom_user_data       = var.custom_user_data
 }
 
 
@@ -150,7 +204,6 @@ module bigip {
   mgmt_subnet_ids     = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "10.2.1.2", "private_ip_secondary" = "10.2.1.3" }]
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "", "private_ip_secondary" = "" }]
-  custom_user_data       = var.custom_user_data
 }
 
 ```
@@ -198,6 +251,7 @@ These variables have default values and don't have to be set to use this module.
 | FAST_URL | URL to download the BIG-IP FAST module | `string` | latest | 
 | CFE_URL | URL to download the BIG-IP Cloud Failover Extension module | `string` | latest |
 | INIT_URL | URL to download the BIG-IP runtime init module | `string` | latest |
+| custom\_user\-data | Provide a custom bash script or cloud-init script the BIG-IP will run on creation | string  |   null   |
 
 #### Output Variables
 | Name | Description |
