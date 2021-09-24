@@ -250,10 +250,10 @@ resource google_compute_instance f5vm01 {
     }
   }
 
-  metadata_startup_script = coalesce(var.custom_user_data,data.template_file.startup_script.rendered)
+  metadata_startup_script = coalesce(var.custom_startup_script,data.template_file.startup_script.rendered)
 
   metadata = {
-
+    user-data = var.custom_user_data
     sshKeys = file(var.f5_ssh_publickey)
   }
 

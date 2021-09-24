@@ -187,8 +187,13 @@ variable f5_ssh_publickey {
 }
 
 variable custom_user_data {
-  description = "Provide a custom bash script or cloud-init script the BIG-IP will run on creation"
+  description = "Provide a custom user-data content that will be processed by cloud-init on boot"
   type        = string
   default     = null
 }
 
+variable custom_startup_script {
+  description = "Provide a custom startup shell script to override the module default"
+  type        = string
+  default     = null
+}
