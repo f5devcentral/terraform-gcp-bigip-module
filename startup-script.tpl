@@ -117,20 +117,21 @@ then
    MGMTADDRESS=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/ip)
    MGMTMASK=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/subnetmask)
    MGMTGATEWAY=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/gateway)
+   MGMTMTU=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/mtu)
    MGMTNETWORK=$(/bin/ipcalc -n $MGMTADDRESS $MGMTMASK | cut -d= -f2)
-   INT1GATEWAY=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/gateway)
    echo $MGMTADDRESS
    echo $MGMTMASK
    echo $MGMTGATEWAY
+   echo $MGMTMTU
    echo $MGMTNETWORK   
    tmsh modify sys global-settings gui-setup disabled
    tmsh modify sys global-settings mgmt-dhcp disabled
    tmsh delete sys management-route all 
    tmsh delete sys management-ip all
    tmsh create sys management-ip $${MGMTADDRESS}/32
-   tmsh create sys management-route mgmt_gw network $${MGMTGATEWAY}/32 type interface mtu 1460
-   tmsh create sys management-route mgmt_net network $${MGMTNETWORK}/$${MGMTMASK} gateway $${MGMTGATEWAY} mtu 1460
-   tmsh create sys management-route default gateway $${MGMTGATEWAY} mtu 1460
+   tmsh create sys management-route mgmt_gw network $${MGMTGATEWAY}/32 type interface mtu $${MGMTMTU}
+   tmsh create sys management-route mgmt_net network $${MGMTNETWORK}/$${MGMTMASK} gateway $${MGMTGATEWAY} mtu $${MGMTMTU}
+   tmsh create sys management-route default gateway $${MGMTGATEWAY} mtu $${MGMTMTU}
    tmsh modify sys global-settings remote-host add { metadata.google.internal { hostname metadata.google.internal addr 169.254.169.254 } }
    tmsh modify sys management-dhcp sys-mgmt-dhcp-config request-options delete { ntp-servers }
    tmsh save /sys config
