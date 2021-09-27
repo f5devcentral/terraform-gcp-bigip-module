@@ -1,5 +1,5 @@
 output mgmtPublicIP {
-  value = local.multiple_nic_count > 0 ? google_compute_instance.f5vm01.network_interface[1].access_config[0].nat_ip : google_compute_instance.f5vm01.network_interface[0].access_config[0].nat_ip
+  value = join("", [for ac in google_compute_instance.f5vm01.network_interface[local.multiple_nic_count > 0 ? 1 : 0].access_config: ac.nat_ip if ac != null])
 }
 output mgmtPort {
   description = "Mgmt Port"
