@@ -21,3 +21,18 @@ output private_addresses {
 output service_account {
   value = [var.service_account]
 }
+
+output self_link {
+  value = google_compute_instance.f5vm01.self_link
+  description = "Fully-qualifed self-link of the BIG-IP VM."
+}
+
+output name {
+  value = google_compute_instance.f5vm01.name
+  description = "The final instance name for BIG-IP VM."
+}
+
+output zone {
+  value = google_compute_instance.f5vm01.zone
+  description = "The compute zone for the instance."
+}
