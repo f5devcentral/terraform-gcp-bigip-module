@@ -192,3 +192,9 @@ variable custom_user_data {
   default     = null
 }
 
+variable metadata {
+  description = "Provide custom metadata values for BIG-IP instance"
+  type        = map(string)
+  default     = {}
+}
+
