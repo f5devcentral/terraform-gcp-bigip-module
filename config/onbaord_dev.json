@@ -6,6 +6,19 @@
     "Common": {
         "class": "Tenant",
         "hostname": "bigip1.example.com",
+        "myDns": {
+            "class": "DNS",
+            "nameServers": [
+                "8.8.8.8"
+            ]
+        },
+        "myNtp": {
+            "class": "NTP",
+            "servers": [
+                "0.pool.ntp.org"
+            ],
+            "timezone": "UTC"
+        },
         "admin": {
             "class": "User",
             "userType": "regular",
@@ -24,6 +37,18 @@
                     "role": "admin"
                 }
             }
+        },
+        "default": {
+            "class": "Route",
+            "gw": '{{{DEFAULT_GW}}}',
+            "network": "default",
+            "mtu": 1500
+        },    
+        "defaultManagementRoute": {
+            "class": "ManagementRoute",
+            "mtu": 1500,
+            "network": "default",
+            "gw": '{{{MGMT_GW}}}',
         }
     }
 }
