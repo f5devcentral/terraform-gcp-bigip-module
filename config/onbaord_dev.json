@@ -40,7 +40,7 @@
         },
         "default": {
             "class": "Route",
-            "gw": '{{{DEFAULT_GW}}}',
+            "gw": "{{{DEFAULT_GW}}}",
             "network": "default",
             "mtu": 1500
         },    
@@ -48,7 +48,7 @@
             "class": "ManagementRoute",
             "mtu": 1500,
             "network": "default",
-            "gw": '{{{MGMT_GW}}}',
+            "gw": "{{{MGMT_GW}}}",
         }
     }
 }
