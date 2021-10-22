@@ -48,12 +48,6 @@
                 }
             }
         },
-        "default": {
-            "class": "Route",
-            "gw": "{{{DEFAULT_GW}}}",
-            "network": "default",
-            "mtu": 1500
-        },
         "defaultManagementRoute": {
             "class": "ManagementRoute",
             "mtu": 1460,
