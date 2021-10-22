@@ -47,7 +47,7 @@
         "defaultManagementRoute": {
             "class": "ManagementRoute",
             "mtu": 1500,
-            "network": "default",
+            "network": "{{{MGMT_NW}}}",
             "gw": "{{{MGMT_GW}}}"
         }
     }
