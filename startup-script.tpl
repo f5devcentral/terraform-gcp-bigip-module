@@ -19,6 +19,58 @@ mkdir -p /config/cloud
 
 mkdir -p /var/lib/cloud/icontrollx_installs
 
+COMPUTE_BASE_URL="http://metadata.google.internal/computeMetadata/v1"
+
+if ${NIC_COUNT} && [ "$(tmsh list sys db provision.managementeth value 2>/dev/null | awk -F\" 'NR==2 {print $2}')" != "eth1" ]; then
+   cat << 'EOF' >> /config/cloud/nic_swap.sh
+   #!/bin/bash
+   source /usr/lib/bigstart/bigip-ready-functions
+   echo "before nic swapping"
+   tmsh list sys db provision.1nicautoconfig
+   tmsh list sys db provision.managementeth
+   echo "after nic swapping"
+   bigstart stop tmm
+   tmsh modify sys db provision.managementeth value eth1
+   tmsh modify sys db provision.1nicautoconfig value disable
+   bigstart start tmm
+   wait_bigip_ready
+   echo "---Mgmt interface setting---"
+   tmsh list sys db provision.managementeth
+   tmsh list sys db provision.1nicautoconfig
+   sed -i "s/iface0=eth0/iface0=eth1/g" /etc/ts/common/image.cfg
+   echo "Done changing interface"
+   echo "Set TMM networks"
+   MGMTADDRESS=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/ip)
+   MGMTMASK=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/subnetmask)
+   MGMTGATEWAY=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/gateway)
+   MGMTMTU=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/mtu)
+   MGMTNETWORK=$(/bin/ipcalc -n $MGMTADDRESS $MGMTMASK | cut -d= -f2)
+   echo $MGMTADDRESS
+   echo $MGMTMASK
+   echo $MGMTGATEWAY
+   echo $MGMTMTU
+   echo $MGMTNETWORK   
+   tmsh modify sys global-settings gui-setup disabled
+   tmsh modify sys global-settings mgmt-dhcp disabled
+   tmsh delete sys management-route all 
+   tmsh delete sys management-ip all
+   tmsh create sys management-ip $${MGMTADDRESS}/32
+   tmsh create sys management-route mgmt_gw network $${MGMTGATEWAY}/32 type interface mtu $${MGMTMTU}
+   tmsh create sys management-route mgmt_net network $${MGMTNETWORK}/$${MGMTMASK} gateway $${MGMTGATEWAY} mtu $${MGMTMTU}
+   tmsh create sys management-route default gateway $${MGMTGATEWAY} mtu $${MGMTMTU}
+   tmsh modify sys global-settings remote-host add { metadata.google.internal { hostname metadata.google.internal addr 169.254.169.254 } }
+   tmsh modify sys management-dhcp sys-mgmt-dhcp-config request-options delete { ntp-servers }
+   tmsh save /sys config
+   reboot
+EOF
+fi
+
+if ${NIC_COUNT}
+then
+   chmod +x /config/cloud/nic_swap.sh
+   /config/cloud/nic_swap.sh >> $LOG_FILE
+fi
+
 cat << 'EOF' > /config/cloud/runtime-init-conf.yaml
 ---
 runtime_parameters:
@@ -28,6 +80,24 @@ runtime_parameters:
   - name: SSH_KEYS
     type: static
     value: "${ssh_keypair}"
+  - name: DEFAULT_GW
+    type: url
+    value: http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/gateway
+    headers:
+      - name: Metadata-Flavor
+        value: Google
+  - name: MGMT_GW
+    type: url
+    value: http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/1/gateway
+    headers:
+      - name: Metadata-Flavor
+        value: Google
+  - name: MGMT_NW
+    type: url
+    value: http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/1/ip
+    headers:
+      - name: Metadata-Flavor
+        value: Google    
 EOF
 
 if ${gcp_secret_manager_authentication}
@@ -78,7 +148,7 @@ extension_services:
   service_operations:
     - extensionType: do
       type: url
-      value: https://raw.githubusercontent.com/f5devcentral/terraform-gcp-bigip-module/master/config/onboard_do.json
+      value: https://raw.githubusercontent.com/f5devcentral/terraform-gcp-bigip-module/blob/dev_dinesh/config/onbaord_dev.json
 EOF
 
 #PACKAGE_URL='https://cdn.f5.com/product/cloudsolutions/f5-bigip-runtime-init/v1.1.0/dist/f5-bigip-runtime-init-1.1.0-1.gz.run'
@@ -94,53 +164,3 @@ bash /var/config/rest/downloads/f5-bigip-runtime-init.gz.run -- '--cloud gcp'
 
 COMPUTE_BASE_URL="http://metadata.google.internal/computeMetadata/v1"
 
-if ${NIC_COUNT}
-then
-   cat << 'EOF' >> /config/cloud/nic_swap.sh
-   #!/bin/bash
-   source /usr/lib/bigstart/bigip-ready-functions
-   echo "before nic swapping"
-   tmsh list sys db provision.1nicautoconfig
-   tmsh list sys db provision.managementeth
-   echo "after nic swapping"
-   bigstart stop tmm
-   tmsh modify sys db provision.managementeth value eth1
-   tmsh modify sys db provision.1nicautoconfig value disable
-   bigstart start tmm
-   wait_bigip_ready
-   echo "---Mgmt interface setting---"
-   tmsh list sys db provision.managementeth
-   tmsh list sys db provision.1nicautoconfig
-   sed -i "s/iface0=eth0/iface0=eth1/g" /etc/ts/common/image.cfg
-   echo "Done changing interface"
-   echo "Set TMM networks"
-   MGMTADDRESS=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/ip)
-   MGMTMASK=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/subnetmask)
-   MGMTGATEWAY=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/gateway)
-   MGMTMTU=$(curl -s -f --retry 10 -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/1/mtu)
-   MGMTNETWORK=$(/bin/ipcalc -n $MGMTADDRESS $MGMTMASK | cut -d= -f2)
-   echo $MGMTADDRESS
-   echo $MGMTMASK
-   echo $MGMTGATEWAY
-   echo $MGMTMTU
-   echo $MGMTNETWORK   
-   tmsh modify sys global-settings gui-setup disabled
-   tmsh modify sys global-settings mgmt-dhcp disabled
-   tmsh delete sys management-route all 
-   tmsh delete sys management-ip all
-   tmsh create sys management-ip $${MGMTADDRESS}/32
-   tmsh create sys management-route mgmt_gw network $${MGMTGATEWAY}/32 type interface mtu $${MGMTMTU}
-   tmsh create sys management-route mgmt_net network $${MGMTNETWORK}/$${MGMTMASK} gateway $${MGMTGATEWAY} mtu $${MGMTMTU}
-   tmsh create sys management-route default gateway $${MGMTGATEWAY} mtu $${MGMTMTU}
-   tmsh modify sys global-settings remote-host add { metadata.google.internal { hostname metadata.google.internal addr 169.254.169.254 } }
-   tmsh modify sys management-dhcp sys-mgmt-dhcp-config request-options delete { ntp-servers }
-   tmsh save /sys config
-   reboot
-EOF
-fi
-
-if ${NIC_COUNT}
-then
-   chmod +x /config/cloud/nic_swap.sh
-   /config/cloud/nic_swap.sh >> $LOG_FILE
-fi
