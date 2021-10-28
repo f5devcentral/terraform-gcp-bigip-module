@@ -37,7 +37,7 @@ variable "preemptible" {
 
 variable "image" {
   type        = string
-  default     = "projects/f5-7626-networks-public/global/images/f5-bigip-16-0-1-1-0-0-6-payg-good-25mbps-210129040032"
+  default     = "projects/f5-7626-networks-public/global/images/f5-bigip-16-1-1-0-0-16-payg-good-25mbps-210917181041"
   description = "This can be one of: the image's self_link, projects/{project}/global/images/{image}, projects/{project}/global/images/family/{family}, global/images/{image}, global/images/family/{family}, family/{family}, {project}/{family}, {project}/{image}, {family}, or {image}."
 }
 
