@@ -75,7 +75,7 @@ This template uses PayGo BIG-IP image for the deployment (as default). If you wo
       },
 ```
 
-## Custom User data
+## Custom User data && Metadata
 
 * By default custom_user_data will be null,bigip module will use default f5_onboard.tmpl file contents for initial BIGIP onboard connfiguration
 
@@ -100,6 +100,25 @@ module bigip {
 
 ```
 
+* variable metadata can be used as set of key:value pairs for the instance with or without custom_user_data as shown below
+
+```
+module "bigip" {
+   ...
+   # Onboard through cloud-config YAML and allow connection to serial port
+  metadata = {
+    user-data = var.cloud_config_yaml
+    serial-port-enable = "TRUE"
+  }
+  
+  # Override the module startup-script as everything is in cloud-config YAML
+  custom_user_data = <<-EOS
+#!/bin/sh
+exit 0
+EOS
+}
+
+```
 
 ## Example Usage
 
