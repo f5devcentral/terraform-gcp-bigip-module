@@ -9,7 +9,7 @@ terraform {
 #
 # Create a random id
 #
-resource random_id module_id {
+resource "random_id" "module_id" {
   byte_length = 2
 }
 
@@ -92,7 +92,7 @@ locals {
   instance_prefix    = format("%s-%s", var.prefix, random_id.module_id.hex)
 }
 
-resource random_string password {
+resource "random_string" "password" {
   length      = 16
   min_upper   = 1
   min_lower   = 1
@@ -100,7 +100,7 @@ resource random_string password {
   special     = false
 }
 
-resource random_string sa_role {
+resource "random_string" "sa_role" {
   length    = 16
   min_lower = 1
   number    = false
@@ -161,16 +161,16 @@ resource "google_project_iam_custom_role" "gcp_custom_roles" {
 }
 
 
-resource google_compute_address mgmt_public_ip {
+resource "google_compute_address" "mgmt_public_ip" {
   count = length([for address in compact([for subnet in var.mgmt_subnet_ids : subnet.public_ip]) : address if address])
   name  = format("%s-mgmt-publicip-%s", var.prefix, random_id.module_id.hex)
 }
-resource google_compute_address external_public_ip {
+resource "google_compute_address" "external_public_ip" {
   count = length([for address in compact([for subnet in var.external_subnet_ids : subnet.public_ip]) : address if address])
   name  = format("%s-ext-publicip-%s-%s", var.prefix, count.index, random_id.module_id.hex)
 }
 
-resource google_compute_instance f5vm01 {
+resource "google_compute_instance" "f5vm01" {
   //project = var.project_id
   name = format("%s-f5vm01", local.instance_prefix)
   zone = var.zone
@@ -196,18 +196,18 @@ resource google_compute_instance f5vm01 {
   can_ip_forward = true
 
   #Assign external Nic
-  dynamic network_interface {
+  dynamic "network_interface" {
     for_each = [for subnet in var.external_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
     content {
       subnetwork = network_interface.value.subnet_id
       network_ip = network_interface.value.private_ip_primary
-      dynamic access_config {
+      dynamic "access_config" {
         for_each = element(coalescelist(compact([network_interface.value.public_ip]), [false]), 0) ? [1] : []
         content {
           nat_ip = google_compute_address.external_public_ip[tonumber(network_interface.key)].address
         }
       }
-      dynamic alias_ip_range {
+      dynamic "alias_ip_range" {
         for_each = compact([network_interface.value.private_ip_secondary])
         content {
           ip_cidr_range = alias_ip_range.value
@@ -218,12 +218,12 @@ resource google_compute_instance f5vm01 {
 
 
   #Assign to Management Nic
-  dynamic network_interface {
+  dynamic "network_interface" {
     for_each = [for subnet in var.mgmt_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
     content {
       subnetwork = network_interface.value.subnet_id
       network_ip = network_interface.value.private_ip_primary
-      dynamic access_config {
+      dynamic "access_config" {
         for_each = element(coalescelist(compact([network_interface.value.public_ip]), [false]), 0) ? [1] : []
         content {
           nat_ip = google_compute_address.mgmt_public_ip[tonumber(network_interface.key)].address
@@ -236,12 +236,12 @@ resource google_compute_instance f5vm01 {
 
 
   # Internal NIC
-  dynamic network_interface {
+  dynamic "network_interface" {
     for_each = [for subnet in var.internal_subnet_ids : subnet if subnet.subnet_id != null && subnet.subnet_id != ""]
     content {
       subnetwork = network_interface.value.subnet_id
       network_ip = network_interface.value.private_ip_primary
-      dynamic access_config {
+      dynamic "access_config" {
         for_each = element(coalescelist(compact([network_interface.value.public_ip]), [false]), 0) ? [1] : []
         content {
           nat_ip = google_compute_address.internal_public_ip[tonumber(network_interface.key)].address
@@ -250,7 +250,7 @@ resource google_compute_instance f5vm01 {
     }
   }
 
-  metadata_startup_script = coalesce(var.custom_user_data,data.template_file.startup_script.rendered)
+  metadata_startup_script = coalesce(var.custom_user_data, data.template_file.startup_script.rendered)
 
   metadata = merge(var.metadata, coalesce(var.f5_ssh_publickey, "unspecified") != "unspecified" ? {
     sshKeys = file(var.f5_ssh_publickey)

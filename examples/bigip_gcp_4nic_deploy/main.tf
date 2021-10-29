@@ -11,22 +11,22 @@ provider "google" {
 #
 # Create a random id
 #
-resource random_id id {
+resource "random_id" "id" {
   byte_length = 2
 }
 
-resource google_compute_network mgmt_network {
+resource "google_compute_network" "mgmt_network" {
   name                    = format("%s-mgmt-network-%s", var.prefix, random_id.id.hex)
   auto_create_subnetworks = false
 }
-resource google_compute_subnetwork mgmt_subnetwork {
+resource "google_compute_subnetwork" "mgmt_subnetwork" {
   name          = format("%s-mgmt-subnetwork-%s", var.prefix, random_id.id.hex)
   ip_cidr_range = "10.1.0.0/16"
   region        = "us-central1"
   network       = google_compute_network.mgmt_network.id
 }
 
-resource google_compute_firewall default {
+resource "google_compute_firewall" "default" {
   name    = format("%s-mgmt-firewall-%s", var.prefix, random_id.id.hex)
   network = google_compute_network.mgmt_network.id
   allow {
@@ -39,19 +39,19 @@ resource google_compute_firewall default {
   source_ranges = ["0.0.0.0/0"]
 }
 
-resource google_compute_network external_network {
+resource "google_compute_network" "external_network" {
   name                    = format("%s-external-network-%s", var.prefix, random_id.id.hex)
   auto_create_subnetworks = false
 }
 
-resource google_compute_subnetwork external_subnetwork {
+resource "google_compute_subnetwork" "external_subnetwork" {
   name          = format("%s-external-subnetwork-%s", var.prefix, random_id.id.hex)
   ip_cidr_range = "10.2.0.0/16"
   region        = "us-central1"
   network       = google_compute_network.external_network.id
 }
 
-resource google_compute_firewall external {
+resource "google_compute_firewall" "external" {
   name    = format("%s-external-firewall-%s", var.prefix, random_id.id.hex)
   network = google_compute_network.external_network.id
   allow {
@@ -63,17 +63,17 @@ resource google_compute_firewall external {
   }
   source_ranges = ["0.0.0.0/0"]
 }
-resource google_compute_network internal_network {
+resource "google_compute_network" "internal_network" {
   name                    = format("%s-internal-network-%s", var.prefix, random_id.id.hex)
   auto_create_subnetworks = false
 }
-resource google_compute_subnetwork internal_subnetwork {
+resource "google_compute_subnetwork" "internal_subnetwork" {
   name          = format("%s-internal-subnetwork-%s", var.prefix, random_id.id.hex)
   ip_cidr_range = "10.3.0.0/16"
   region        = "us-central1"
   network       = google_compute_network.internal_network.id
 }
-resource google_compute_firewall internal {
+resource "google_compute_firewall" "internal" {
   name    = format("%s-internal-firewall-%s", var.prefix, random_id.id.hex)
   network = google_compute_network.internal_network.id
   allow {
@@ -85,18 +85,18 @@ resource google_compute_firewall internal {
   }
   source_ranges = ["0.0.0.0/0"]
 }
-resource google_compute_network external_network2 {
+resource "google_compute_network" "external_network2" {
   name                    = format("%s-external-network2-%s", var.prefix, random_id.id.hex)
   auto_create_subnetworks = false
 }
 
-resource google_compute_subnetwork external_subnetwork2 {
+resource "google_compute_subnetwork" "external_subnetwork2" {
   name          = format("%s-external-subnetwork2-%s", var.prefix, random_id.id.hex)
   ip_cidr_range = "10.4.0.0/16"
   region        = "us-central1"
   network       = google_compute_network.external_network2.id
 }
-resource google_compute_firewall external2 {
+resource "google_compute_firewall" "external2" {
   name    = format("%s-external2-firewall-%s", var.prefix, random_id.id.hex)
   network = google_compute_network.external_network2.id
   allow {
@@ -108,7 +108,7 @@ resource google_compute_firewall external2 {
   }
   source_ranges = ["0.0.0.0/0"]
 }
-module bigip {
+module "bigip" {
   count               = var.instance_count
   source              = "../.."
   prefix              = format("%s-4nic", var.prefix)

@@ -16,7 +16,7 @@ resource "random_id" "id" {
 
 # Create random password for BIG-IP
 #
-resource random_string password {
+resource "random_string" "password" {
   length      = 16
   min_upper   = 1
   min_lower   = 1
@@ -24,19 +24,19 @@ resource random_string password {
   special     = false
 }
 
-resource google_compute_network vpc {
+resource "google_compute_network" "vpc" {
   name                    = format("%s-vpc-%s", var.prefix, random_id.id.hex)
   auto_create_subnetworks = false
 }
 
-resource google_compute_subnetwork mgmt_subnetwork {
+resource "google_compute_subnetwork" "mgmt_subnetwork" {
   name          = format("%s-mgmt-%s", var.prefix, random_id.id.hex)
   ip_cidr_range = "10.0.0.0/16"
   region        = var.region
   network       = google_compute_network.vpc.id
 }
 
-resource google_compute_firewall mgmt_firewall {
+resource "google_compute_firewall" "mgmt_firewall" {
   name    = format("%s-mgmt-firewall-%s", var.prefix, random_id.id.hex)
   network = google_compute_network.vpc.id
   allow {
@@ -65,15 +65,15 @@ data "template_file" "user_data_vm0" {
 }
 
 
-module bigip {
-  count           = var.instance_count
-  source          = "../.."
-  prefix          = format("%s-1nic", var.prefix)
-  project_id      = var.project_id
-  zone            = var.zone
-  image           = var.image
-  service_account = var.service_account
-  mgmt_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
+module "bigip" {
+  count            = var.instance_count
+  source           = "../.."
+  prefix           = format("%s-1nic", var.prefix)
+  project_id       = var.project_id
+  zone             = var.zone
+  image            = var.image
+  service_account  = var.service_account
+  mgmt_subnet_ids  = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
   custom_user_data = var.custom_user_data
 }
 
