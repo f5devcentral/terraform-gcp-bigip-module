@@ -36,3 +36,7 @@ output "zone" {
   value       = google_compute_instance.f5vm01.zone
   description = "The compute zone for the instance."
 }
+
+output "bigip_instance_ids" {
+  value = concat(google_compute_instance.f5vm01.*.id)[0]
+}
