@@ -8,9 +8,10 @@ Getting Started with the Google Provider ( https://registry.terraform.io/provide
 
 This module is supported from Terraform 0.13 version onwards.
 
-Below templates are tested and worked in the following version 
+Below templates are tested and worked in the following version
 
 Terraform v0.14.0
+
 + provider registry.terraform.io/hashicorp/google v3.51.0
 + provider registry.terraform.io/hashicorp/null v2.1.2
 + provider registry.terraform.io/hashicorp/random v3.0.1
@@ -43,11 +44,9 @@ This template uses PayGo BIG-IP image for the deployment (as default). If you wo
 
 1.Find available images/versions with "byol" in the name using Google gcloud:
 
-```
+```bash
  gcloud compute images list --project=f5-7626-networks-public | grep f5
-
         # example output...
-
         --snippet--
         f5-bigip-13-1-3-2-0-0-4-payg-best-1gbps-20191105210022
         f5-bigip-13-1-3-2-0-0-4-payg-best-200mbps-20191105210022
@@ -58,16 +57,18 @@ This template uses PayGo BIG-IP image for the deployment (as default). If you wo
         f5-bigip-15-1-2-1-0-0-10-byol-ltm-2boot-loc-210115160742
         ...and more...
 ```
+
 2.In the "variables.tf", modify image_name with the image name from gcloud CLI results
 
-```
+```bash
         # BIGIP Image
         variable image_name { default = "projects/f5-7626-networks-public/global/images/f5-bigip-15-1-2-1-0-0-10-byol-ltm-2boot-loc-210115160742" }
 ```
-3. Add the corresponding license key in DO declaration( Declarative Onboarding ), this DO can be in custom run-time-int script or outside of it.
+
+3.Add the corresponding license key in DO declaration( Declarative Onboarding ), this DO can be in custom run-time-int script or outside of it.
    ( https://clouddocs.f5.com/products/extensions/f5-declarative-onboarding/latest/bigip-examples.html#standalone-declaration )
 
-```
+```bash
          "myLicense": {
           "class": "License",
           "licenseType": "regKey",
@@ -77,13 +78,12 @@ This template uses PayGo BIG-IP image for the deployment (as default). If you wo
 
 ## Custom User data && Metadata
 
-* By default custom_user_data will be null,bigip module will use default f5_onboard.tmpl file contents for initial BIGIP onboard connfiguration
++ By default custom_user_data will be null,bigip module will use default f5_onboard.tmpl file contents for initial BIGIP onboard connfiguration
 
-* If users desire custom onboard configuration,we can use this variable and pass contents of custom script to the variable to have custom onboard bigip  configuration. ( An example is provided in examples section  )
++ If users desire custom onboard configuration,we can use this variable and pass contents of custom script to the variable to have custom onboard bigip  configuration. ( An example is provided in examples section  )
 
-```
-Example 3-NIC Deployment with custom run-time-init
-
+```hcl
+#Example 3-NIC Deployment with custom run-time-init
 module bigip {
   count               = var.instance_count
   source              = "../.."
@@ -97,12 +97,11 @@ module bigip {
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "", "private_ip_secondary" = "" }]
   custom_user_data       = var.custom_user_data
 }
-
 ```
 
-* variable metadata can be used as set of key:value pairs for the instance with or without custom_user_data as shown below
++ variable metadata can be used as set of key:value pairs for the instance with or without custom_user_data as shown below
 
-```
+```hcl
 module "bigip" {
    ...
    # Onboard through cloud-config YAML and allow connection to serial port
@@ -117,33 +116,25 @@ module "bigip" {
 exit 0
 EOS
 }
-
 ```
 
 ## Example Usage
 
-We have provided some common deployment [examples](https://github.com/f5devcentral/terraform-gcp-bigip-module/tree/main/examples) 
+We have provided some common deployment [examples](https://github.com/f5devcentral/terraform-gcp-bigip-module/tree/main/examples)
 
-#### Note
+~> **Note:** Users can have dynamic or static private ip allocation.If primary/secondary private ip value is null, it will be dynamic or else static private ip allocation.
 
-Users can have dynamic or static private ip allocation.If primary/secondary private ip value is null, it will be dynamic or else static private ip allocation.
+~> **Note:** With Static private ip allocation we can assign primary and secondary private ips for external interfaces, whereas primary private ip for management and internal interfaces.
 
-```
-With Static private ip allocation we can assign primary and secondary private ips for external interfaces, whereas primary private ip for management
-and internal interfaces.
-```
-
-If it is static private ip allocation we can't use module count as same private ips will be tried to allocate for multiple 
+If it is static private ip allocation we can't use module count as same private ips will be tried to allocate for multiple
 bigip instances based on module count.
 
 With Dynamic private ip allocation,we have to pass null value to primary/secondary private ip declaration and module count will be supported.
 
 Below example snippets show how this module is called. ( Dynamic private ip allocation )
 
-```
-
-Example 1-NIC Deployment Module usage
-
+```hcl
+#Example 1-NIC Deployment Module usage
 module bigip {
   count           = var.instance_count
   source          = "../.."
@@ -155,7 +146,7 @@ module bigip {
   mgmt_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.mgmt_subnetwork.id, "public_ip" = true, "private_ip_primary" = "" }]
 }
 
-Example 2-NIC Deployment Module usage
+#Example 2-NIC Deployment Module usage
 
 module "bigip" {
   count               = var.instance_count
@@ -169,8 +160,7 @@ module "bigip" {
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = "" }]
 }
 
-
-Example 3-NIC Deployment  Module usage 
+#Example 3-NIC Deployment  Module usage 
 
 module bigip {
   count               = var.instance_count
@@ -185,8 +175,7 @@ module bigip {
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "", "private_ip_secondary" = "" }]
 }
 
-
-Example 4-NIC Deployment  Module usage(with 2 external public interfaces,one management and internal interfaces)
+#Example 4-NIC Deployment  Module usage(with 2 external public interfaces,one management and internal interfaces)
 
 module bigip s
   count               = vas.instance_count
@@ -200,18 +189,14 @@ module bigip s
   external_subnet_ids = ([{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = ""  },                                         { "subnet_id" = google_compute_subnetwork.external_subnetwork2.id, "public_ip" = true, "private_ip_primary" = "", "private_ip_secondary" = ""  }])
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "" }]
 }
-
-.............
-
-Similarly we can have N-nic deployments based on user provided subnet_ids.
-With module count, user can deploy multiple bigip instances in the gcp cloud (with the default value of count being one )
-
 ```
+
+~>**NOTE:** Similarly we can have N-nic deployments based on user provided subnet_ids. With module count, user can deploy multiple bigip instances in the gcp cloud (with the default value of count being one )
+
 #### Below is the example snippet for private ip allocation
 
-```
-Example 3-NIC Deployment with static private ip allocation
-
+```hcl
+#Example 3-NIC Deployment with static private ip allocation
 module bigip {
   count               = var.instance_count
   source              = "../.."
@@ -224,9 +209,7 @@ module bigip {
   external_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.external_subnetwork.id, "public_ip" = true, "private_ip_primary" = "10.2.1.2", "private_ip_secondary" = "10.2.1.3" }]
   internal_subnet_ids = [{ "subnet_id" = google_compute_subnetwork.internal_subnetwork.id, "public_ip" = false, "private_ip_primary" = "", "private_ip_secondary" = "" }]
 }
-
 ```
-
 
 #### Required Input Variables
 
@@ -239,7 +222,6 @@ These variables must be set in the module block when using this module.
 | zone  | The compute zones which will host the BIG-IP VMs | `string` |
 | mgmt\_subnet\_ids | Map with Subnet-id and public_ip as keys for the management subnet | `List of Maps` |
 | service\_account | service account email to use with BIG-IP | `string` |
-| custom\_user\-data | Provide a custom bash script or cloud-init script the BIG-IP will run on creation | string  |   null   |
 
 #### Optional Input Variables
 
@@ -250,7 +232,7 @@ These variables have default values and don't have to be set to use this module.
 | f5\_username | The admin username of the F5   BIG-IP that will be deployed | `string` | bigipuser |
 | f5\_password | Password of the F5  BIG-IP that will be deployed.If this is not specified random password will get generated | `string` | "" |
 | image | The self-link URI for a BIG-IP image to use as a base for the VM cluster  | `string` | "projects/f5-7626-networks-public/global/images/f5-bigip-16-0-1-1-0-0-6-payg-good-25mbps-210129040032" |
-| min_cpu_platform | Minimum CPU platform for the VM instance such as Intel Haswell or Intel Skylake | string` | Intel Skylake |
+| min_cpu_platform | Minimum CPU platform for the VM instance such as Intel Haswell or Intel Skylake | string`| Intel Skylake |
 | machine_type | The machine type to create,if you want to update this value (resize the VM) after initial creation, you must set allow_stopping_for_update to true | string` | n1-standard-4 |
 | automatic_restart | Specifies if the instance should be restarted if it was terminated by Compute Engine (not a user) | `bool` | true |
 | preemptible | Specifies if the instance is preemptible. If this field is set to true, then automatic_restart must be set to false | `boo1` | false |
@@ -265,12 +247,12 @@ These variables have default values and don't have to be set to use this module.
 | external\_subnet\_ids | List of maps of subnetids of the virtual network where the virtual machines will reside | `List of Maps` | [{ "subnet_id" = null, "public_ip" = null,"private_ip_primary" = "", "private_ip_secondary" = "" }] |
 | internal\_subnet\_ids | List of maps of subnetids of the virtual network where the virtual machines will reside | `List of Maps` | [{ "subnet_id" = null, "public_ip" = null,"private_ip_primary" = "" }] |
 | DO_URL | URL to download the BIG-IP Declarative Onboarding module | `string` | latest | 
-| AS3_URL | URL to download the BIG-IP Application Service Extension 3 (AS3) module | `string` | latest | 
+| AS3_URL | URL to download the BIG-IP Application Service Extension 3 (AS3) module | `string` | latest |
 | TS_URL | URL to download the BIG-IP Telemetry Streaming module | `string` | latest | 
 | FAST_URL | URL to download the BIG-IP FAST module | `string` | latest | 
 | CFE_URL | URL to download the BIG-IP Cloud Failover Extension module | `string` | latest |
 | INIT_URL | URL to download the BIG-IP runtime init module | `string` | latest |
-| custom\_user\-data | Provide a custom bash script or cloud-init script the BIG-IP will run on creation | string  |   null   |
+| custom\_user\_data | Provide a custom bash script or cloud-init script the BIG-IP will run on creation | string  |   null   |
 
 #### Output Variables
 | Name | Description |
@@ -282,6 +264,7 @@ These variables have default values and don't have to be set to use this module.
 | public_addresses | List of BIG-IP public addresses |
 | private_addresses | List of BIG-IP private addresses |
 | service_account | The service account that will be used for the BIG-IP VMs |
+| bigip\_instance\_ids | List of BIG-IP VEs Instance IDs Created in GCP|
 
 ## Support Information
 
