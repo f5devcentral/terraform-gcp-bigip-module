@@ -9,13 +9,17 @@
         "myDns": {
             "class": "DNS",
             "nameServers": [
-                "8.8.8.8"
-            ]
+                "169.254.169.254"
+            ],
+            "search": [
+                "c.f5-gcs-7666-ptg-ecosystems.internal.",
+                "google.internal."
+             ]
         },
         "myNtp": {
             "class": "NTP",
             "servers": [
-                "0.pool.ntp.org"
+                "169.254.169.254"
             ],
             "timezone": "UTC"
         },
